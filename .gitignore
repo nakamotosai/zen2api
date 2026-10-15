@@ -1,0 +1,20 @@
+# 运行时产物（绝不入库）
+*.log
+requests.jsonl
+service.env
+panel.env
+
+# 环境与密钥
+.env
+.env.*
+!.env.example
+
+# 依赖与缓存
+node_modules/
+bun.lockb
+
+# 编辑器/系统
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

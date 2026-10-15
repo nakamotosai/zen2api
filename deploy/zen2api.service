@@ -1,0 +1,16 @@
+[Unit]
+Description=zen2api gateway (OpenCode Zen free-tier, OpenAI/Anthropic compatible)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# 按你的部署改：用户 / 目录 / bun 路径
+User=zen2api
+WorkingDirectory=/opt/zen2api
+EnvironmentFile=-/opt/zen2api/service.env
+ExecStart=/usr/local/bin/bun server.js
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

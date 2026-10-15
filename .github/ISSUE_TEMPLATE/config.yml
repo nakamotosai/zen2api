@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 安全漏洞 / 密钥泄露
+    url: https://github.com/nakamotosai/zen2api/security/advisories/new
+    about: 请走私密渠道，不要开公开 issue。见 SECURITY.md。
+  - name: 使用问题 / 求助
+    url: https://github.com/nakamotosai/zen2api/blob/master/README.md
+    about: 先读 README 的快速开始与配置表；仍不清楚再开 issue。

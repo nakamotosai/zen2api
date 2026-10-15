@@ -1,0 +1,13 @@
+{
+  "name": "zen2api",
+  "version": "2.0.0",
+  "type": "module",
+  "description": "OpenCode Zen free-tier gateway — OpenAI/Anthropic compatible, single-file Bun server, built-in read-only panel",
+  "license": "MIT",
+  "scripts": {
+    "start": "bun server.js",
+    "panel": "bun panel/server.js",
+    "smoke": "python3 smoke.py",
+    "gate": "bash scripts/sanitize-gate.sh"
+  }
+}

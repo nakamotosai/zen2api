@@ -1,0 +1,39 @@
+name: 功能请求
+description: 想要一个新能力或改进
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你遇到的问题
+      description: 先讲场景和痛点，别急着讲方案
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 你希望的方案
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 考虑过的替代方案
+      description: 例如：改配置就能解决？用外部代理/网关解决？
+    validations:
+      required: false
+  - type: dropdown
+    id: area
+    attributes:
+      label: 涉及范围
+      multiple: true
+      options:
+        - 协议桥接（Anthropic / OpenAI / Responses）
+        - 上游密钥与限流
+        - 出口代理（egress）
+        - 管理面板
+        - 安装与升级
+        - 文档
+        - 其他
+    validations:
+      required: true

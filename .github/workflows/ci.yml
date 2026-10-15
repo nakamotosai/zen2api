@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: 语法检查（网关 + 面板）
+        run: |
+          bun build server.js --target=bun --outfile=/tmp/gw.js
+          bun build panel/server.js --target=bun --outfile=/tmp/panel.js
+
+      - name: 脱敏门禁
+        run: bash scripts/sanitize-gate.sh
+
+      - name: 启动冒烟（网关）
+        run: |
+          HOST=127.0.0.1 PORT=18500 ZEN_LOG=/tmp/req.jsonl bun server.js &
+          sleep 2
+          curl -sf http://127.0.0.1:18500/health | grep -q '"ok":true'
+          curl -sf http://127.0.0.1:18500/v1/models | grep -q big-pickle
+          echo "网关冒烟 ✓"
+
+      - name: 启动冒烟（面板）
+        run: |
+          PANEL_PORT=18505 PANEL_GW=http://127.0.0.1:18500 PANEL_REQ_LOG=/tmp/req.jsonl bun panel/server.js &
+          sleep 2
+          curl -sf http://127.0.0.1:18505/ | grep -q "zen2api"
+          curl -sf http://127.0.0.1:18505/api/state | grep -q '"health"'
+          echo "面板冒烟 ✓"

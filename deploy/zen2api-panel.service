@@ -1,0 +1,16 @@
+[Unit]
+Description=zen2api read-only panel (gateway status / models / egress pool / request log)
+After=network-online.target zen2api.service
+Wants=zen2api.service
+
+[Service]
+# 按你的部署改：用户 / 目录 / bun 路径
+User=zen2api
+WorkingDirectory=/opt/zen2api
+EnvironmentFile=-/opt/zen2api/panel.env
+ExecStart=/usr/local/bin/bun panel/server.js
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,63 @@
+name: Bug 报告
+description: 有东西没按预期工作
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        提交前请先搜索一下已有 issue，避免重复。
+
+        **不要在这里贴任何真实密钥。** 贴配置时请把 `MANAGEMENT_KEY`、客户端 key、
+        上游 Zen key、代理密码统统替换成 `***`。
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 发生了什么
+      description: 期望的行为 vs 实际的行为
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 复现步骤
+      description: 尽量给出可直接执行的命令或请求。能稳定复现的问题修起来快十倍。
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: 安装方式
+      options:
+        - Docker / docker compose
+        - install.sh（systemd）
+        - 裸机 bun
+        - 其他（下面说明）
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 版本
+      description: 面板左上角或 `GET /api/version` 的 version 字段
+      placeholder: "0.3.7"
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: 运行环境
+      placeholder: "Ubuntu 24.04 / aarch64 / Bun 1.4.2"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 相关日志
+      description: "`journalctl -u zen2api -n 100` 或 `docker logs zen2api`；请先脱敏"
+      render: shell
+    validations:
+      required: false
