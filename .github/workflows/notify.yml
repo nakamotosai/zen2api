@@ -1,0 +1,89 @@
+name: 通知到 Telegram
+
+# 目的：有人提 PR / 开 Issue / CI 挂了，直接推到 Telegram，不用盯 GitHub。
+#
+# 用 pull_request_target 是为了拿到 secrets —— fork 来的 PR 在 pull_request 触发下
+# **拿不到任何 secrets**，通知就发不出去。代价是它跑在 base 仓库上下文且带 secrets，
+# 所以本工作流**绝不 checkout / 执行 PR 内容**，只读事件元数据（标题、作者、链接）。
+# 任何改动都不得在这里执行 PR 内容 —— 那会把 pull_request_target 变成 RCE 入口。
+#
+# 需要仓库 secrets：TELEGRAM_BOT_TOKEN（notify bot）、TELEGRAM_CHAT_ID
+on:
+  pull_request_target:
+    types: [opened, ready_for_review, reopened]
+  issues:
+    types: [opened]
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 组装并推送
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+          EVENT: ${{ github.event_name }}
+          EV: ${{ toJSON(github.event) }}
+          SERVER_URL: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+        run: |
+          node - <<'JS'
+          (async () => {
+            const ev = process.env.EVENT;
+            let e = {};
+            try { e = JSON.parse(process.env.EV || "{}"); } catch {}
+
+            const repo = process.env.REPO || "";
+              const who = u => (u && u.login) || "?";
+            let text = "";
+
+            if (ev === "workflow_dispatch") {
+              text = "✅ 通知链路自检\n\n如果你收到这条，说明 zen2api 的 GitHub → Telegram 通知是通的。";
+            } else if (ev === "pull_request_target") {
+              const pr = e.pull_request || {};
+              if (pr.draft && e.action !== "ready_for_review") process.exit(0);
+              const head = e.action === "ready_for_review" ? "🔔 PR 转为可评审" : "🔔 有人提了 PR";
+              text = `${head}\n\n#${pr.number} ${pr.title}\n作者: ${who(pr.user)}\n仓库: ${repo}\n\n${pr.html_url}`;
+            } else if (ev === "issues") {
+              const it = e.issue || {};
+              text = `🔔 新 Issue\n\n#${it.number} ${it.title}\n作者: ${who(it.user)}\n仓库: ${repo}\n\n${it.html_url}`;
+            } else if (ev === "workflow_run") {
+              const wr = e.workflow_run || {};
+              if (wr.conclusion !== "failure") process.exit(0);
+              text = `❌ CI 挂了\n\n${wr.name || "CI"} · 分支 ${wr.head_branch || "?"}\n触发: ${wr.event || "?"}\n仓库: ${repo}\n\n${wr.html_url}`;
+            } else {
+              process.exit(0);
+            }
+
+            if (!process.env.TG_TOKEN || !process.env.TG_CHAT) {
+              console.error("缺少 TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID，跳过通知");
+              process.exit(1);
+            }
+
+            const r = await fetch(`https://api.telegram.org/bot${process.env.TG_TOKEN}/sendMessage`, {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                chat_id: process.env.TG_CHAT,
+                text,
+                disable_web_page_preview: true,
+              }),
+            });
+            const j = await r.json().catch(() => ({}));
+            if (!j.ok) {
+              // 不打印 token；只打 Telegram 的错误描述
+              console.error("Telegram 发送失败:", JSON.stringify(j).slice(0, 300));
+              process.exit(1);
+            }
+            console.log("已通知 ✓ message_id =", j.result && j.result.message_id);
+          })();
+          JS
