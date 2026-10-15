@@ -203,9 +203,10 @@ var $ = function (id) { return document.getElementById(id); };
 var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
 var cls = function (c) { return c === 200 ? "s200" : c === 429 ? "s429" : "s0"; };
 var reqFilter = "all";
+var PUBLIC_URL = ${JSON.stringify(PUBLIC_URL)};
 
 function snips(base) {
-  var b = base.replace(/\/v1$/, "");
+  var b = base.replace(/\\/v1$/, "");
   return {
     "snip-claude": "export ANTHROPIC_BASE_URL=" + b + "\\nexport ANTHROPIC_AUTH_TOKEN=<任意>\\nclaude   # 模型名可用 claude-sonnet-5 / claude-haiku-4-5（网关映射到 muse-spark-1.3）",
     "snip-codex": "[model_providers.zen]\\nname = \\"zen2api\\"\\nbase_url = \\"" + base + "\\"\\nenv_key = \\"ZEN_KEY\\"\\nwire_api = \\"responses\\"\\n\\n# 启动：ZEN_KEY=any codex -m muse-spark-1.3-contributor-free -c model_provider=zen",
